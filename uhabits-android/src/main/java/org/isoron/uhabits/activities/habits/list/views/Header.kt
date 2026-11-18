@@ -149,7 +149,7 @@ class HeaderView(
 
                 val date = today.minus(index + dataOffset)
                 val dayOfWeek = dateFormatter.shortWeekdayName(date).uppercase()
-                val dayOfMonth = date.day.toString()
+                val dayOfMonth = date.hijriDay.toString()
                 val y1 = rect.centerY() - 0.25 * em
                 val y2 = rect.centerY() + 1.25 * em
                 canvas.drawText(dayOfWeek, rect.centerX(), y1.toFloat(), paint)

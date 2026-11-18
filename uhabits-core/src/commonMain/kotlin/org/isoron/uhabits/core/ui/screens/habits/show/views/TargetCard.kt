@@ -49,55 +49,65 @@ class TargetCardPresenter {
 
             val valueToday = entries.groupedSum(
                 truncateField = TruncateField.DAY,
-                isNumerical = habit.isNumerical
+                isNumerical = habit.isNumerical,
+                useHijri = true
             ).firstOrNull()?.value ?: 0
 
             val skippedDayToday = entries.countSkippedDays(
-                truncateField = TruncateField.DAY
+                truncateField = TruncateField.DAY,
+                useHijri = true
             ).firstOrNull()?.value ?: 0
 
             val valueThisWeek = entries.groupedSum(
                 truncateField = TruncateField.WEEK_NUMBER,
                 firstWeekday = firstWeekday,
-                isNumerical = habit.isNumerical
+                isNumerical = habit.isNumerical,
+                useHijri = true
             ).firstOrNull()?.value ?: 0
 
             val skippedDaysThisWeek = entries.countSkippedDays(
                 truncateField = TruncateField.WEEK_NUMBER,
-                firstWeekday = firstWeekday
+                firstWeekday = firstWeekday,
+                useHijri = true
             ).firstOrNull()?.value ?: 0
 
             val valueThisMonth = entries.groupedSum(
                 truncateField = TruncateField.MONTH,
-                isNumerical = habit.isNumerical
+                isNumerical = habit.isNumerical,
+                useHijri = true
             ).firstOrNull()?.value ?: 0
 
             val skippedDaysThisMonth = entries.countSkippedDays(
-                truncateField = TruncateField.MONTH
+                truncateField = TruncateField.MONTH,
+                useHijri = true
             ).firstOrNull()?.value ?: 0
 
             val valueThisQuarter = entries.groupedSum(
                 truncateField = TruncateField.QUARTER,
-                isNumerical = habit.isNumerical
+                isNumerical = habit.isNumerical,
+                useHijri = true
             ).firstOrNull()?.value ?: 0
 
             val skippedDaysThisQuarter = entries.countSkippedDays(
-                truncateField = TruncateField.QUARTER
+                truncateField = TruncateField.QUARTER,
+                useHijri = true
             ).firstOrNull()?.value ?: 0
 
             val valueThisYear = entries.groupedSum(
                 truncateField = TruncateField.YEAR,
-                isNumerical = habit.isNumerical
+                isNumerical = habit.isNumerical,
+                useHijri = true
             ).firstOrNull()?.value ?: 0
 
             val skippedDaysThisYear = entries.countSkippedDays(
-                truncateField = TruncateField.YEAR
+                truncateField = TruncateField.YEAR,
+                useHijri = true
             ).firstOrNull()?.value ?: 0
 
-            val daysInMonth = today.monthLength
+            val daysInMonth = today.hijriMonthLength
             val daysInWeek = 7
             val daysInQuarter = 91
-            val daysInYear = today.yearLength
+            val daysInYear = today.hijriYearLength
             val weeksInMonth = daysInMonth / 7
             val weeksInQuarter = 13
             val weeksInYear = 52

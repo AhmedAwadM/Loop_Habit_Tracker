@@ -195,13 +195,13 @@ class ScoreChart : ScrollableChart {
 
     private fun drawFooter(canvas: Canvas?, rect: RectF?, date: LocalDate) {
         val df = dateFormatter ?: return
-        val yearText = date.year.toString()
+        val yearText = date.hijriYear.toString()
         val monthText = df.shortMonthName(date)
-        val dayText = date.day.toString()
+        val dayText = date.hijriDay.toString()
         val text: String
         var shouldPrintYear = true
         if (yearText == previousYearText) shouldPrintYear = false
-        if (bucketSize >= 365 && date.year % 2 != 0) shouldPrintYear = false
+        if (bucketSize >= 365 && date.hijriYear % 2 != 0) shouldPrintYear = false
         if (skipYear > 0) {
             skipYear--
             shouldPrintYear = false
@@ -290,7 +290,7 @@ class ScoreChart : ScrollableChart {
             val df = dateFormatter ?: return 0f
             var maxDayWidth = 0f
             for (i in 1..12) {
-                val date = LocalDate(2020, i, 1)
+                val date = LocalDate.fromHijri(1446, i, 1)
                 val monthWidth = pText!!.measureText(df.shortMonthName(date))
                 maxDayWidth = max(maxDayWidth, monthWidth)
             }
@@ -301,7 +301,7 @@ class ScoreChart : ScrollableChart {
             val df = dateFormatter ?: return 0f
             var maxMonthWidth = 0f
             for (i in 1..12) {
-                val date = LocalDate(2020, i, 1)
+                val date = LocalDate.fromHijri(1446, i, 1)
                 val monthWidth = pText!!.measureText(df.shortMonthName(date))
                 maxMonthWidth = max(maxMonthWidth, monthWidth)
             }

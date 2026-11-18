@@ -48,9 +48,8 @@ class JsLocalDateFormatter(private val locale: String = "en-US") : LocalDateForm
     }
 
     override fun shortMonthName(date: LocalDate): String {
-        val jsDate = localDateToJsDate(date)
-        val options = js("{month: 'short', timeZone: 'UTC'}")
-        return toLocaleDateString(jsDate, locale, options)
+        val m = date.hijriMonth.coerceIn(1, 12)
+        return HIJRI_SHORT_MONTH_NAMES[m - 1]
     }
 
     override fun longWeekdayName(weekday: DayOfWeek): String {
@@ -59,9 +58,8 @@ class JsLocalDateFormatter(private val locale: String = "en-US") : LocalDateForm
     }
 
     override fun longMonthName(date: LocalDate): String {
-        val jsDate = localDateToJsDate(date)
-        val options = js("{month: 'long', timeZone: 'UTC'}")
-        return toLocaleDateString(jsDate, locale, options)
+        val m = date.hijriMonth.coerceIn(1, 12)
+        return HIJRI_LONG_MONTH_NAMES[m - 1]
     }
 
     private fun formatWeekday(jsDate: Date, style: String): String {
@@ -71,7 +69,7 @@ class JsLocalDateFormatter(private val locale: String = "en-US") : LocalDateForm
     }
 
     private fun localDateToJsDate(date: LocalDate): Date {
-        return Date(Date.UTC(date.year, date.month - 1, date.day))
+        return Date(date.unixTime.toDouble())
     }
 
     private fun weekdayToJsDate(weekday: DayOfWeek): Date {

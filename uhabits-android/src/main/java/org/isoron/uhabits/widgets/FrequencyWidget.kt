@@ -51,7 +51,7 @@ class FrequencyWidget(
             setFirstWeekday(firstWeekday)
             setColor(WidgetTheme().color(habit.color).toInt())
             setIsNumerical(habit.isNumerical)
-            setFrequency(habit.originalEntries.computeWeekdayFrequency(habit.isNumerical))
+            setFrequency(habit.originalEntries.computeWeekdayFrequency(habit.isNumerical, useHijri = true))
         }
     }
 

@@ -26,7 +26,7 @@ import android.util.AttributeSet
 import org.isoron.platform.time.DayOfWeek
 import org.isoron.platform.time.JavaLocalDateFormatter
 import org.isoron.platform.time.LocalDate
-import org.isoron.platform.time.countWeekdayOccurrencesInMonth
+import org.isoron.platform.time.countWeekdayOccurrencesInHijriMonth
 import org.isoron.platform.time.getToday
 import org.isoron.platform.time.getWeekdaySequence
 import org.isoron.uhabits.R
@@ -127,7 +127,7 @@ class FrequencyChart : ScrollableChart {
         pGraph!!.color = primaryColor
         prevRect!!.setEmpty()
         val today = getToday()
-        var currentDate = LocalDate(today.year, today.month, 1)
+        var currentDate = LocalDate.fromHijri(today.hijriYear, today.hijriMonth, 1)
         currentDate = stepMonth(currentDate, -nColumns + 2 - dataOffset)
         for (i in 0 until nColumns - 1) {
             rect!![0f, 0f, columnWidth] = columnHeight.toFloat()
@@ -167,7 +167,7 @@ class FrequencyChart : ScrollableChart {
 
     private fun drawColumn(canvas: Canvas, rect: RectF?, date: LocalDate) {
         val values = frequency[date]
-        val weekDaysInMonth = countWeekdayOccurrencesInMonth(date)
+        val weekDaysInMonth = countWeekdayOccurrencesInHijriMonth(date)
         val rowHeight = rect!!.height() / 8.0f
         prevRect!!.set(rect)
         val localeWeekdayList = getWeekdaySequence(firstWeekday)
@@ -191,9 +191,9 @@ class FrequencyChart : ScrollableChart {
             rect.centerY() - 0.1f * em,
             pText!!
         )
-        if (date.month == 2) {
+        if (date.hijriMonth == 2) {
             canvas.drawText(
-                date.year.toString(),
+                date.hijriYear.toString(),
                 rect.centerX(),
                 rect.centerY() + 0.9f * em,
                 pText!!
@@ -249,7 +249,7 @@ class FrequencyChart : ScrollableChart {
             val df = dateFormatter ?: return 0f
             var maxMonthWidth = 0f
             for (i in 1..12) {
-                val date = LocalDate(2020, i, 1)
+                val date = LocalDate.fromHijri(1446, i, 1)
                 val monthWidth = pText!!.measureText(df.shortMonthName(date))
                 maxMonthWidth = max(maxMonthWidth, monthWidth)
             }
@@ -284,16 +284,16 @@ class FrequencyChart : ScrollableChart {
     }
 
     private fun stepMonth(date: LocalDate, months: Int): LocalDate {
-        var y = date.year
-        var m = date.month + months
+        var y = date.hijriYear
+        var m = date.hijriMonth + months
         while (m < 1) { m += 12; y -= 1 }
         while (m > 12) { m -= 12; y += 1 }
-        return LocalDate(y, m, 1)
+        return LocalDate.fromHijri(y, m, 1)
     }
 
     fun populateWithRandomData() {
         val today = getToday()
-        var date = LocalDate(today.year, today.month, 1)
+        var date = LocalDate.fromHijri(today.hijriYear, today.hijriMonth, 1)
         val rand = Random()
         frequency.clear()
         for (i in 0..39) {

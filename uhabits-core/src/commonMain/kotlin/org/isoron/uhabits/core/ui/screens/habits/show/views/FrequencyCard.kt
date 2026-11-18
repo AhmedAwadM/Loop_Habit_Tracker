@@ -42,7 +42,8 @@ class FrequencyCardPresenter {
             color = habit.color,
             isNumerical = habit.isNumerical,
             frequency = habit.originalEntries.computeWeekdayFrequency(
-                isNumerical = habit.isNumerical
+                isNumerical = habit.isNumerical,
+                useHijri = true
             ),
             firstWeekday = firstWeekday,
             theme = theme

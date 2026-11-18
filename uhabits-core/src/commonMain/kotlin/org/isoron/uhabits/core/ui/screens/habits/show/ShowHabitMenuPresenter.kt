@@ -19,6 +19,7 @@
 package org.isoron.uhabits.core.ui.screens.habits.show
 
 import org.isoron.platform.io.UserFile
+import org.isoron.platform.time.LocalDate
 import org.isoron.platform.time.getToday
 import org.isoron.uhabits.core.commands.ArchiveHabitsCommand
 import org.isoron.uhabits.core.commands.CommandRunner
@@ -63,10 +64,10 @@ class ShowHabitMenuPresenter(
         screen.showMessage(Message.HABIT_ARCHIVED)
     }
 
-    fun onExportCSV() {
+    fun onExportCSV(startDate: LocalDate? = null, endDate: LocalDate? = null) {
         val outputDir = system.getCSVOutputDir()
         taskRunner.execute(
-            ExportCSVTask(habitList, listOf(habit), outputDir) { filename: String? ->
+            ExportCSVTask(habitList, listOf(habit), outputDir, startDate, endDate) { filename: String? ->
                 if (filename != null) {
                     screen.showSendFileScreen(filename)
                 } else {

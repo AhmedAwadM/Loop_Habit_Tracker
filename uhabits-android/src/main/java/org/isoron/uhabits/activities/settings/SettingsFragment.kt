@@ -37,7 +37,10 @@ import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
 import androidx.recyclerview.widget.RecyclerView
 import org.isoron.platform.time.DayOfWeek
+import org.isoron.platform.time.HIJRI_LONG_MONTH_NAMES
 import org.isoron.platform.time.JavaLocalDateFormatter
+import org.isoron.platform.time.getToday
+import org.isoron.platform.time.setHijriOffset
 import org.isoron.uhabits.HabitsApplication
 import org.isoron.uhabits.R
 import org.isoron.uhabits.activities.habits.list.RESULT_BUG_REPORT
@@ -165,6 +168,7 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
             devCategory.isVisible = false
         }
         updateWeekdayPreference()
+        updateHijriOffsetPreference()
         updatePublicBackupFolderSummary()
 
         findPreference("reminderSound").isVisible = false
@@ -181,6 +185,27 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         weekdayPref.summary = dayNames[currentFirstWeekday % 7]
     }
 
+    private fun updateHijriOffsetPreference() {
+        val hijriPref = findPreference("pref_hijri_offset") as? ListPreference ?: return
+        val entries = arrayOf(
+            "+2 يوم (تقديم يومين)",
+            "+1 يوم (تقديم يوم)",
+            "0 (بدون تعديل)",
+            "-1 يوم (تأخير يوم)",
+            "-2 يوم (تأخير يومين)"
+        )
+        val values = arrayOf("2", "1", "0", "-1", "-2")
+        hijriPref.entries = entries
+        hijriPref.entryValues = values
+        val currentOffset = prefs.hijriOffset
+        setHijriOffset(currentOffset)
+        hijriPref.value = currentOffset.toString()
+        val index = values.indexOf(currentOffset.toString()).let { if (it >= 0) it else 2 }
+        val today = getToday()
+        val monthName = HIJRI_LONG_MONTH_NAMES[(today.hijriMonth - 1).coerceIn(0, 11)]
+        hijriPref.summary = "${entries[index]} — اليوم: ${today.hijriDay} $monthName ${today.hijriYear} هـ"
+    }
+
     override fun onSharedPreferenceChanged(
         sharedPreferences: SharedPreferences,
         key: String?
@@ -189,8 +214,17 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
             Log.d("SettingsFragment", "updating widgets")
             widgetUpdater!!.updateWidgets()
         }
+        if (key == "pref_hijri_offset") {
+            setHijriOffset(prefs.hijriOffset)
+            val appContext = context?.applicationContext
+            if (appContext is HabitsApplication) {
+                for (h in appContext.component.habitList) h.recompute()
+            }
+            widgetUpdater?.updateWidgets()
+        }
         BackupManager.dataChanged("org.isoron.uhabits")
         updateWeekdayPreference()
+        updateHijriOffsetPreference()
     }
 
     private fun setResultOnPreferenceClick(key: String, result: Int) {

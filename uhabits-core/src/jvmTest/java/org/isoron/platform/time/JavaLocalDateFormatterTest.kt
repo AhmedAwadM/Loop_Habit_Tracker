@@ -9,9 +9,9 @@ class JavaLocalDateFormatterTest {
 
     @Test
     fun testLongFormat() {
-        assertEquals("Dec 1, 2020", formatter.longFormat(LocalDate(2020, 12, 1)))
-        assertEquals("Jan 15, 2015", formatter.longFormat(LocalDate(2015, 1, 15)))
-        assertEquals("Feb 28, 2000", formatter.longFormat(LocalDate(2000, 2, 28)))
+        assertEquals("1 محرم 1448", formatter.longFormat(LocalDate.fromHijri(1448, 1, 1)))
+        assertEquals("15 رمضان 1447", formatter.longFormat(LocalDate.fromHijri(1447, 9, 15)))
+        assertEquals("24 رمضان 1420", formatter.longFormat(LocalDate(2000, 1, 1)))
     }
 
     @Test

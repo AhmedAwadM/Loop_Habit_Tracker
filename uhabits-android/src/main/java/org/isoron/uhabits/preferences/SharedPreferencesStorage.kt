@@ -93,6 +93,9 @@ class SharedPreferencesStorage(
             "pref_unknown_enabled" -> {
                 preferences.areQuestionMarksEnabled = getBoolean(key, false)
             }
+            "pref_hijri_offset" -> {
+                preferences.hijriOffset = getString(key, "0").toIntOrNull() ?: 0
+            }
         }
         sharedPreferences.registerOnSharedPreferenceChangeListener(this)
     }

@@ -39,15 +39,15 @@ class LocalDateFormatterTest {
 
     @Test
     fun testShortMonthName() {
-        assertEquals("Jan", formatter.shortMonthName(LocalDate(2015, 1, 1)))
-        assertEquals("Feb", formatter.shortMonthName(LocalDate(2015, 2, 1)))
-        assertEquals("Dec", formatter.shortMonthName(LocalDate(2015, 12, 1)))
+        assertEquals("محرم", formatter.shortMonthName(LocalDate.fromHijri(1448, 1, 1)))
+        assertEquals("صفر", formatter.shortMonthName(LocalDate.fromHijri(1448, 2, 1)))
+        assertEquals("ذو الحجة", formatter.shortMonthName(LocalDate.fromHijri(1448, 12, 1)))
     }
 
     @Test
     fun testLongMonthName() {
-        assertEquals("January", formatter.longMonthName(LocalDate(2015, 1, 1)))
-        assertEquals("February", formatter.longMonthName(LocalDate(2015, 2, 1)))
-        assertEquals("December", formatter.longMonthName(LocalDate(2015, 12, 1)))
+        assertEquals("محرم", formatter.longMonthName(LocalDate.fromHijri(1448, 1, 1)))
+        assertEquals("ربيع الأول", formatter.longMonthName(LocalDate.fromHijri(1448, 3, 1)))
+        assertEquals("ذو الحجة", formatter.longMonthName(LocalDate.fromHijri(1448, 12, 1)))
     }
 }

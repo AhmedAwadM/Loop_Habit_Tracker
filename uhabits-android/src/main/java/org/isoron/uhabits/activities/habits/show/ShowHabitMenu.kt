@@ -22,6 +22,7 @@ package org.isoron.uhabits.activities.habits.show
 import android.view.Menu
 import android.view.MenuItem
 import org.isoron.uhabits.R
+import org.isoron.uhabits.activities.common.dialogs.ExportCSVDialog
 import org.isoron.uhabits.core.preferences.Preferences
 import org.isoron.uhabits.core.ui.screens.habits.show.ShowHabitMenuPresenter
 
@@ -65,7 +66,9 @@ class ShowHabitMenu(
                 return true
             }
             R.id.export -> {
-                presenter.onExportCSV()
+                ExportCSVDialog.show(activity) { startDate, endDate ->
+                    presenter.onExportCSV(startDate, endDate)
+                }
                 return true
             }
         }

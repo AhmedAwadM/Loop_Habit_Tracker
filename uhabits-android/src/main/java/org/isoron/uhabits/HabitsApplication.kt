@@ -23,6 +23,7 @@ import android.app.Application
 import android.content.Context
 import org.isoron.platform.time.computeToday
 import org.isoron.platform.time.setFirstWeekday
+import org.isoron.platform.time.setHijriOffset
 import org.isoron.platform.time.setToday
 import org.isoron.uhabits.core.database.UnsupportedDatabaseVersionException
 import org.isoron.uhabits.core.reminders.ReminderScheduler
@@ -69,6 +70,7 @@ class HabitsApplication : Application() {
         val prefs = component.preferences
         prefs.lastAppVersion = BuildConfig.VERSION_CODE
 
+        setHijriOffset(prefs.hijriOffset)
         setToday(computeToday(component.preferences.midnightDelayHours, 0))
         setFirstWeekday(prefs.firstWeekday)
 

@@ -244,4 +244,12 @@
     <string name="pref_midnight_delay_description">انتظر حتى 3:00 صباحاً لعرض يوم جديد. مفيد إذا كنت عادة تذهب إلى السكون بعد منتصف الليل. يتطلب إعادة تشغيل التطبيق.</string>
     <string name="select_public_backup_folder">اختر مجلد النسخ الاحتياطي العام</string>
     <string name="no_public_backup_folder_selected">لم يتم اختيار مجلد</string>
+    <string name="pref_hijri_offset_title">تعديل التاريخ الهجري (توقيت مصر)</string>
+    <string name="export_csv_range_title">تصدير CSV - اختر المدة</string>
+    <string name="export_range_week">أسبوع (آخر 7 أيام)</string>
+    <string name="export_range_month">شهر (آخر 30 يوم)</string>
+    <string name="export_range_year">سنة (آخر سنة هجرية)</string>
+    <string name="export_range_custom">مدة محددة (من - إلى بالتاريخ الهجري)</string>
+    <string name="export_from_hijri_date">من تاريخ (اليوم / الشهر / السنة):</string>
+    <string name="export_to_hijri_date">إلى تاريخ (اليوم / الشهر / السنة):</string>
 </resources>

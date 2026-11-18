@@ -36,6 +36,7 @@ import org.isoron.uhabits.activities.common.dialogs.CategoryDialog
 import org.isoron.uhabits.activities.common.dialogs.CheckmarkDialog
 import org.isoron.uhabits.activities.common.dialogs.ColorPickerDialogFactory
 import org.isoron.uhabits.activities.common.dialogs.ConfirmDeleteDialog
+import org.isoron.uhabits.activities.common.dialogs.ExportCSVDialog
 import org.isoron.uhabits.activities.common.dialogs.NumberDialog
 import org.isoron.uhabits.activities.habits.edit.HabitTypeDialog
 import org.isoron.uhabits.activities.habits.list.views.HabitCardListAdapter
@@ -177,7 +178,11 @@ class ListHabitsScreen(
     private fun onSettingsResult(resultCode: Int) {
         when (resultCode) {
             RESULT_IMPORT_DATA -> showImportScreen()
-            RESULT_EXPORT_CSV -> behavior.value.onExportCSV()
+            RESULT_EXPORT_CSV -> {
+                ExportCSVDialog.show(activity) { startDate, endDate ->
+                    behavior.value.onExportCSV(startDate, endDate)
+                }
+            }
             RESULT_EXPORT_DB -> onExportDB()
             RESULT_BUG_REPORT -> behavior.value.onSendBugReport()
             RESULT_REPAIR_DB -> behavior.value.onRepairDB()

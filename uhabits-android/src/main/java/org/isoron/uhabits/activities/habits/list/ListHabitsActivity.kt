@@ -33,6 +33,7 @@ import androidx.core.content.ContextCompat.checkSelfPermission
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import org.isoron.platform.time.LocalDate
+import org.isoron.platform.time.setHijriOffset
 import org.isoron.uhabits.BaseExceptionHandler
 import org.isoron.uhabits.HabitsApplication
 import org.isoron.uhabits.core.preferences.Preferences
@@ -108,8 +109,10 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
     }
 
     override fun onResume() {
+        setHijriOffset(prefs.hijriOffset)
         screen.refresh()
         screen.onAttached()
+        rootView.header.postInvalidate()
         rootView.postInvalidate()
         midnightTimer.onResume()
 

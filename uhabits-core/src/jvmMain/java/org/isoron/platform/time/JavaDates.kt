@@ -19,32 +19,17 @@
 
 package org.isoron.platform.time
 
-import java.text.DateFormat
-import java.util.Calendar.DAY_OF_MONTH
 import java.util.Calendar.DAY_OF_WEEK
-import java.util.Calendar.HOUR_OF_DAY
 import java.util.Calendar.LONG
-import java.util.Calendar.MILLISECOND
-import java.util.Calendar.MINUTE
-import java.util.Calendar.MONTH
 import java.util.Calendar.NARROW_FORMAT
-import java.util.Calendar.SECOND
 import java.util.Calendar.SHORT
-import java.util.Calendar.YEAR
 import java.util.GregorianCalendar
 import java.util.Locale
 import java.util.TimeZone
 
 fun LocalDate.toGregorianCalendar(): GregorianCalendar {
-    val cal = GregorianCalendar()
-    cal.timeZone = TimeZone.getTimeZone("GMT")
-    cal.set(MILLISECOND, 0)
-    cal.set(SECOND, 0)
-    cal.set(MINUTE, 0)
-    cal.set(HOUR_OF_DAY, 0)
-    cal.set(YEAR, this.year)
-    cal.set(MONTH, this.month - 1)
-    cal.set(DAY_OF_MONTH, this.day)
+    val cal = GregorianCalendar(TimeZone.getTimeZone("GMT"))
+    cal.timeInMillis = this.unixTime
     return cal
 }
 
@@ -54,18 +39,14 @@ actual fun getFirstWeekdayNumberAccordingToLocale(): Int {
 
 class JavaLocalDateFormatter(private val locale: Locale) : LocalDateFormatter {
     override fun shortMonthName(date: LocalDate): String {
-        val cal = date.toGregorianCalendar()
-        val longName = cal.getDisplayName(MONTH, LONG, locale)
-        val shortName = cal.getDisplayName(MONTH, SHORT, locale)
-
-        // For some locales, such as Japan, SHORT name is exceedingly short
-        return if (longName.length <= 3) longName else shortName
+        val m = date.hijriMonth.coerceIn(1, 12)
+        return HIJRI_SHORT_MONTH_NAMES[m - 1]
     }
 
     override fun shortWeekdayName(weekday: DayOfWeek): String {
         val cal = GregorianCalendar()
         cal.set(DAY_OF_WEEK, weekday.daysSinceSunday + 1)
-        return shortWeekdayName(LocalDate(cal.get(YEAR), cal.get(MONTH) + 1, cal.get(DAY_OF_MONTH)))
+        return cal.getDisplayName(DAY_OF_WEEK, SHORT, locale)
     }
 
     override fun shortWeekdayName(date: LocalDate): String {
@@ -76,7 +57,7 @@ class JavaLocalDateFormatter(private val locale: Locale) : LocalDateFormatter {
     override fun narrowWeekdayName(weekday: DayOfWeek): String {
         val cal = GregorianCalendar()
         cal.set(DAY_OF_WEEK, weekday.daysSinceSunday + 1)
-        return shortWeekdayName(LocalDate(cal.get(YEAR), cal.get(MONTH) + 1, cal.get(DAY_OF_MONTH)))
+        return cal.getDisplayName(DAY_OF_WEEK, SHORT, locale)
     }
 
     override fun narrowWeekdayName(date: LocalDate): String {
@@ -91,14 +72,12 @@ class JavaLocalDateFormatter(private val locale: Locale) : LocalDateFormatter {
     }
 
     override fun longMonthName(date: LocalDate): String {
-        val cal = date.toGregorianCalendar()
-        return cal.getDisplayName(MONTH, LONG, locale)
+        val m = date.hijriMonth.coerceIn(1, 12)
+        return HIJRI_LONG_MONTH_NAMES[m - 1]
     }
 
     fun longFormat(date: LocalDate): String {
-        val df = DateFormat.getDateInstance(DateFormat.MEDIUM, locale)
-        df.timeZone = TimeZone.getTimeZone("UTC")
-        return df.format(date.toGregorianCalendar().time)
+        return "${date.hijriDay} ${shortMonthName(date)} ${date.hijriYear}"
     }
 
     fun shortWeekdayNames(firstWeekday: DayOfWeek): Array<String> {

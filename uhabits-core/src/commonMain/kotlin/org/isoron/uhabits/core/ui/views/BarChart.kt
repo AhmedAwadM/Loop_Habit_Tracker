@@ -148,12 +148,12 @@ class BarChart(
                 val date = axis[dataColumn]
                 if (isLargeInterval) {
                     canvas.drawText(
-                        date.year.toString(),
+                        date.hijriYear.toString(),
                         x + barGroupWidth / 2,
                         y + theme.smallTextSize * 1.0
                     )
                 } else {
-                    if (date.month != prevMonth) {
+                    if (date.hijriMonth != prevMonth) {
                         canvas.drawText(
                             dateFormatter.shortMonthName(date),
                             x + barGroupWidth / 2,
@@ -161,21 +161,21 @@ class BarChart(
                         )
                     } else {
                         canvas.drawText(
-                            date.day.toString(),
+                            date.hijriDay.toString(),
                             x + barGroupWidth / 2,
                             y + theme.smallTextSize * 1.0
                         )
                     }
-                    if (date.year != prevYear) {
+                    if (date.hijriYear != prevYear) {
                         canvas.drawText(
-                            date.year.toString(),
+                            date.hijriYear.toString(),
                             x + barGroupWidth / 2,
                             y + theme.smallTextSize * 2.3
                         )
                     }
                 }
-                prevMonth = date.month
-                prevYear = date.year
+                prevMonth = date.hijriMonth
+                prevYear = date.hijriYear
             }
         }
 

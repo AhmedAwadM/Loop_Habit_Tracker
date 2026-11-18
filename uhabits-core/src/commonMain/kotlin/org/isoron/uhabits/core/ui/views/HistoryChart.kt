@@ -197,7 +197,7 @@ class HistoryChart(
     private fun drawHeader(canvas: Canvas, column: Int, date: LocalDate) {
         canvas.setColor(theme.mediumContrastTextColor)
         val monthText = dateFormatter.shortMonthName(date)
-        val yearText = date.year.toString()
+        val yearText = date.hijriYear.toString()
         val headerText: String
         when {
             monthText != lastPrintedMonth -> {
@@ -281,7 +281,7 @@ class HistoryChart(
 
         canvas.setColor(textColor)
         canvas.setTextAlign(TextAlign.CENTER)
-        canvas.drawText(date.day.toString(), x + width / 2, y + width / 2)
+        canvas.drawText(date.hijriDay.toString(), x + width / 2, y + width / 2)
 
         if (hasNotes) {
             circleColor = when (value) {

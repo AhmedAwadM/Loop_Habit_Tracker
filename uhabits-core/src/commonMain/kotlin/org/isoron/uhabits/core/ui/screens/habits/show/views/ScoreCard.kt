@@ -95,9 +95,9 @@ class ScoreCardPresenter(
             val firstWeekdayDow = org.isoron.platform.time.DayOfWeek.entries[firstWeekday - 1]
             return when (field) {
                 TruncateField.WEEK_NUMBER -> date.startOfWeek(firstWeekdayDow)
-                TruncateField.MONTH -> date.startOfMonth()
-                TruncateField.QUARTER -> date.startOfQuarter()
-                TruncateField.YEAR -> date.startOfYear()
+                TruncateField.MONTH -> date.startOfHijriMonth()
+                TruncateField.QUARTER -> date.startOfHijriQuarter()
+                TruncateField.YEAR -> date.startOfHijriYear()
                 else -> date
             }
         }

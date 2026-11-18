@@ -21,6 +21,7 @@ package org.isoron.uhabits.core.preferences
 import org.isoron.platform.time.DayOfWeek
 import org.isoron.platform.time.LocalDate
 import org.isoron.platform.time.getFirstWeekdayNumberAccordingToLocale
+import org.isoron.platform.time.setHijriOffset
 import org.isoron.platform.utils.StringUtils.Companion.joinLongs
 import org.isoron.platform.utils.StringUtils.Companion.splitLongs
 import org.isoron.uhabits.core.models.HabitList
@@ -279,6 +280,15 @@ open class Preferences(private val storage: Storage) {
             }
         }
     }
+
+    open var hijriOffset: Int
+        get() = storage.getString("pref_hijri_offset", "0").toIntOrNull()?.coerceIn(-2, 2) ?: 0
+        set(value) {
+            val clamped = value.coerceIn(-2, 2)
+            storage.putString("pref_hijri_offset", clamped.toString())
+            setHijriOffset(clamped)
+            for (l in listeners) l.onCheckmarkSequenceChanged()
+        }
 
     init {
         listeners = mutableListOf()

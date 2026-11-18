@@ -88,6 +88,12 @@
                 android:title="@string/first_day_of_the_week"
                 app:iconSpaceReserved="false" />
 
+        <ListPreference
+                android:defaultValue="0"
+                android:key="pref_hijri_offset"
+                android:title="@string/pref_hijri_offset_title"
+                app:iconSpaceReserved="false" />
+
     </PreferenceCategory>
 
     <PreferenceCategory

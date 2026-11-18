@@ -188,7 +188,7 @@ open class EntryList {
     private fun periodStart(date: LocalDate, firstWeekday: DayOfWeek, frequency: Frequency): LocalDate = when {
         frequency.denominator <= 1 -> date
         frequency.denominator <= 7 -> date.startOfWeek(firstWeekday)
-        else -> date.startOfMonth()
+        else -> date.startOfHijriMonth()
     }
 
     private fun clampedValue(entry: Entry): Int {
@@ -216,12 +216,15 @@ open class EntryList {
      * @return total number of checkmarks by month versus day of week
      */
     @Synchronized
-    fun computeWeekdayFrequency(isNumerical: Boolean): HashMap<LocalDate, Array<Int>> {
+    fun computeWeekdayFrequency(
+        isNumerical: Boolean,
+        useHijri: Boolean = false
+    ): HashMap<LocalDate, Array<Int>> {
         val entries = getKnown()
         val map = hashMapOf<LocalDate, Array<Int>>()
         for (entry in entries) {
             val weekday = (entry.date.dayOfWeek.daysSinceSunday + 1) % 7
-            val monthStart = entry.date.startOfMonth()
+            val monthStart = if (useHijri) entry.date.startOfHijriMonth() else entry.date.startOfMonth()
 
             var list = map[monthStart]
             if (list == null) {
@@ -344,10 +347,10 @@ open class EntryList {
                 val center = filtered[i - num + 1].date
                 var size = den
                 if (den == 30 || den == 31) {
-                    size = if (begin.day == begin.monthLength) {
-                        begin.plus(1).monthLength
+                    size = if (begin.hijriDay == begin.hijriMonthLength) {
+                        begin.plus(1).hijriMonthLength
                     } else {
-                        begin.monthLength
+                        begin.hijriMonthLength
                     }
                 }
                 if (begin.daysUntil(center) < size) {
@@ -363,14 +366,15 @@ open class EntryList {
 private fun truncateDate(
     date: LocalDate,
     field: TruncateField,
-    firstWeekday: DayOfWeek
+    firstWeekday: DayOfWeek,
+    useHijri: Boolean
 ): LocalDate {
     return when (field) {
         TruncateField.DAY -> date
         TruncateField.WEEK_NUMBER -> date.startOfWeek(firstWeekday)
-        TruncateField.MONTH -> date.startOfMonth()
-        TruncateField.QUARTER -> date.startOfQuarter()
-        TruncateField.YEAR -> date.startOfYear()
+        TruncateField.MONTH -> if (useHijri) date.startOfHijriMonth() else date.startOfMonth()
+        TruncateField.QUARTER -> if (useHijri) date.startOfHijriQuarter() else date.startOfQuarter()
+        TruncateField.YEAR -> if (useHijri) date.startOfHijriYear() else date.startOfYear()
     }
 }
 
@@ -394,7 +398,8 @@ private fun truncateDate(
 fun List<Entry>.groupedSum(
     truncateField: TruncateField,
     firstWeekday: Int = 7,
-    isNumerical: Boolean
+    isNumerical: Boolean,
+    useHijri: Boolean = false
 ): List<Entry> {
     val firstWeekdayEnum = DayOfWeek.values()[firstWeekday - 1]
     return this.map { (date, value) ->
@@ -408,7 +413,7 @@ fun List<Entry>.groupedSum(
             Entry(date, if (value == YES_MANUAL) 1000 else 0)
         }
     }.groupBy { entry ->
-        truncateDate(entry.date, truncateField, firstWeekdayEnum)
+        truncateDate(entry.date, truncateField, firstWeekdayEnum, useHijri)
     }.entries.map { (date, entries) ->
         Entry(date, entries.sumOf { it.value })
     }.sortedBy { (date, _) ->
@@ -421,7 +426,8 @@ fun List<Entry>.groupedSum(
  */
 fun List<Entry>.countSkippedDays(
     truncateField: TruncateField,
-    firstWeekday: Int = 7
+    firstWeekday: Int = 7,
+    useHijri: Boolean = false
 ): List<Entry> {
     val firstWeekdayEnum = DayOfWeek.values()[firstWeekday - 1]
     return this.map { (date, value) ->
@@ -431,7 +437,7 @@ fun List<Entry>.countSkippedDays(
             Entry(date, 0)
         }
     }.groupBy { entry ->
-        truncateDate(entry.date, truncateField, firstWeekdayEnum)
+        truncateDate(entry.date, truncateField, firstWeekdayEnum, useHijri)
     }.entries.map { (date, entries) ->
         Entry(date, entries.sumOf { it.value })
     }.sortedBy { (date, _) ->

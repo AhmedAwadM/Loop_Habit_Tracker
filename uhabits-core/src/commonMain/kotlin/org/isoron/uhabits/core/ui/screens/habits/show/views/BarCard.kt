@@ -62,7 +62,8 @@ class BarCardPresenter(
             val entries = habit.computedEntries.getByInterval(oldest, today).groupedSum(
                 truncateField = ScoreCardPresenter.getTruncateField(bucketSize),
                 firstWeekday = firstWeekday,
-                isNumerical = habit.isNumerical
+                isNumerical = habit.isNumerical,
+                useHijri = true
             )
             return BarCardState(
                 theme = theme,

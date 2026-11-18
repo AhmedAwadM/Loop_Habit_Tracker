@@ -127,10 +127,15 @@ fun Activity.showSendFileScreen(archiveFilename: String) {
         val file = if (uri.scheme == "file") File(uri.path!!) else File(archiveFilename)
         FileProvider.getUriForFile(this, "org.isoron.uhabits", file)
     }
+    val mimeType = if (archiveFilename.endsWith(".csv", ignoreCase = true)) {
+        "text/csv"
+    } else {
+        "application/zip"
+    }
     this.startActivitySafely(
         Intent().apply {
             action = Intent.ACTION_SEND
-            type = "application/zip"
+            type = mimeType
             putExtra(Intent.EXTRA_STREAM, fileUri)
             flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
         }

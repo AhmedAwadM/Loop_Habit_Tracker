@@ -19,9 +19,12 @@
 package org.isoron.uhabits.core.preferences
 
 import org.isoron.platform.time.LocalDate
+import org.isoron.platform.time.getHijriOffset
+import org.isoron.platform.time.resetHijriOffset
 import org.isoron.uhabits.core.BaseUnitTest
 import org.isoron.uhabits.core.models.HabitList
 import org.isoron.uhabits.core.ui.ThemeSwitcher
+import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -41,6 +44,11 @@ class PreferencesTest : BaseUnitTest() {
         storage = MemoryStorage()
         prefs = Preferences(storage)
         prefs.addListener(listener)
+    }
+
+    @AfterTest
+    fun tearDown() {
+        resetHijriOffset()
     }
 
     @Test
@@ -151,5 +159,18 @@ class PreferencesTest : BaseUnitTest() {
         assertFalse(prefs.isMidnightDelayEnabled)
         prefs.isMidnightDelayEnabled = true
         assertTrue(prefs.isMidnightDelayEnabled)
+    }
+
+    @Test
+    fun testHijriOffset() {
+        assertEquals(0, prefs.hijriOffset)
+        prefs.hijriOffset = -1
+        assertEquals(-1, prefs.hijriOffset)
+        assertEquals(-1, getHijriOffset())
+        prefs.hijriOffset = 2
+        assertEquals(2, prefs.hijriOffset)
+        assertEquals(2, getHijriOffset())
+        prefs.hijriOffset = 10
+        assertEquals(2, prefs.hijriOffset)
     }
 }

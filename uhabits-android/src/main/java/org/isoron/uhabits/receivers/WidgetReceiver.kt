@@ -25,6 +25,7 @@ import android.util.Log
 import me.tatarka.inject.annotations.Component
 import org.isoron.platform.time.computeToday
 import org.isoron.platform.time.setFirstWeekday
+import org.isoron.platform.time.setHijriOffset
 import org.isoron.platform.time.setToday
 import org.isoron.uhabits.HabitsApplication
 import org.isoron.uhabits.core.ui.widgets.WidgetBehavior
@@ -104,6 +105,7 @@ class WidgetReceiver : BroadcastReceiver() {
                     )
                 }
                 ACTION_UPDATE_WIDGETS_VALUE -> {
+                    setHijriOffset(prefs.hijriOffset)
                     setToday(computeToday(prefs.midnightDelayHours, 0))
                     setFirstWeekday(prefs.firstWeekday)
                     widgetUpdater.updateWidgets()

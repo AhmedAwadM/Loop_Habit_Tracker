@@ -19,6 +19,7 @@
 package org.isoron.uhabits.core.tasks
 
 import org.isoron.platform.io.UserFile
+import org.isoron.platform.time.LocalDate
 import org.isoron.platform.time.getToday
 import org.isoron.uhabits.core.io.HabitsCSVExporter
 import org.isoron.uhabits.core.models.Habit
@@ -28,17 +29,19 @@ class ExportCSVTask(
     private val habitList: HabitList,
     private val selectedHabits: List<Habit>,
     private val outputDir: UserFile,
+    private val startDate: LocalDate? = null,
+    private val endDate: LocalDate? = null,
     private val listener: ExportCSVListener
 ) : Task {
     private var archiveFilename: String? = null
     override suspend fun doInBackground() {
         try {
-            val exporter = HabitsCSVExporter(habitList, selectedHabits)
-            val bytes = exporter.writeArchive()
-            val date = getToday().toCSVString()
-            val zipFile = outputDir.resolve("Loop Habits CSV $date.zip")
-            zipFile.writeBytes(bytes)
-            archiveFilename = zipFile.pathString
+            val exporter = HabitsCSVExporter(habitList, selectedHabits, startDate, endDate)
+            val csv = exporter.writeCSV()
+            val date = getToday().toHijriCSVString()
+            val csvFile = outputDir.resolve("Loop Habits CSV $date.csv")
+            csvFile.writeString(csv)
+            archiveFilename = csvFile.pathString
         } catch (e: Exception) {
             e.printStackTrace()
         }

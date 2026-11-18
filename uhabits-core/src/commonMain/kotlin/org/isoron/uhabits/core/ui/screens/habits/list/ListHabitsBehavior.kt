@@ -78,11 +78,11 @@ open class ListHabitsBehavior(
         }
     }
 
-    open fun onExportCSV() {
+    open fun onExportCSV(startDate: LocalDate? = null, endDate: LocalDate? = null) {
         val selected = habitList.toList()
         val outputDir = dirFinder.getCSVOutputDir()
         taskRunner.execute(
-            ExportCSVTask(habitList, selected, outputDir) { filename: String? ->
+            ExportCSVTask(habitList, selected, outputDir, startDate, endDate) { filename: String? ->
                 if (filename != null) {
                     screen.showSendFileScreen(filename)
                 } else {

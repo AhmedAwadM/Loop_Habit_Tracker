@@ -447,4 +447,31 @@ class EntryListTest : BaseUnitTest() {
     }
 
     fun day(offset: Int): LocalDate = LocalDate(2015, 1, 25).minus(offset)
+
+    @Test
+    fun testGroupByHijriAndWeekdayFrequency() {
+        val m1d1 = LocalDate.fromHijri(1448, 1, 1)
+        val m1d15 = LocalDate.fromHijri(1448, 1, 15)
+        val m2d5 = LocalDate.fromHijri(1448, 2, 5)
+        val entries = EntryList()
+        entries.add(Entry(m1d1, 2000))
+        entries.add(Entry(m1d15, 3000))
+        entries.add(Entry(m2d5, 5000))
+
+        val byMonth = entries.getKnown().groupedSum(
+            truncateField = TruncateField.MONTH,
+            isNumerical = true,
+            useHijri = true
+        )
+        assertEquals(2, byMonth.size)
+        assertEquals(Entry(LocalDate.fromHijri(1448, 2, 1), 5000), byMonth[0])
+        assertEquals(Entry(LocalDate.fromHijri(1448, 1, 1), 5000), byMonth[1])
+
+        val freq = entries.computeWeekdayFrequency(isNumerical = true, useHijri = true)
+        assertEquals(2, freq.size)
+        val w1 = (m1d1.dayOfWeek.daysSinceSunday + 1) % 7
+        val w2 = (m1d15.dayOfWeek.daysSinceSunday + 1) % 7
+        assertEquals(2000 + (if (w1 == w2) 3000 else 0), freq[LocalDate.fromHijri(1448, 1, 1)]!![w1])
+        assertEquals(5000, freq[LocalDate.fromHijri(1448, 2, 1)]!![(m2d5.dayOfWeek.daysSinceSunday + 1) % 7])
+    }
 }

@@ -26,13 +26,24 @@ import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.spy
 import dev.mokkery.verify
+import dev.mokkery.verify.VerifyMode.Companion.exactly
 import kotlinx.coroutines.test.runTest
 import org.isoron.platform.io.UserFile
+import org.isoron.platform.time.DayOfWeek
+import org.isoron.platform.time.LocalDate
 import org.isoron.platform.time.getToday
+import org.isoron.platform.time.resetFirstWeekday
+import org.isoron.platform.time.resetToday
+import org.isoron.platform.time.setFirstWeekday
+import org.isoron.platform.time.setToday
 import org.isoron.uhabits.core.BaseUnitTest
 import org.isoron.uhabits.core.models.Entry
+import org.isoron.uhabits.core.models.Frequency
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.HabitList
+import org.isoron.uhabits.core.models.HabitType
+import org.isoron.uhabits.core.models.NumericalHabitType
+import org.isoron.uhabits.core.models.PaletteColor
 import org.isoron.uhabits.core.preferences.Preferences
 import org.isoron.uhabits.core.ui.callbacks.NumberPickerCallback
 import kotlin.test.BeforeTest
@@ -40,6 +51,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import dev.mokkery.verify.VerifyMode.Companion.not as notCalled
 
 class ListHabitsBehaviorTest : BaseUnitTest() {
     private val dirFinder: ListHabitsBehavior.DirFinder = mock()
@@ -217,5 +229,156 @@ class ListHabitsBehaviorTest : BaseUnitTest() {
             y = 0f
         )
         assertFalse(habit1.isCompletedToday())
+    }
+
+    private fun stubNumberPopup(): (() -> NumberPickerCallback) {
+        var picker: NumberPickerCallback? = null
+        every {
+            screen.showNumberPopup(any(), any(), any())
+        } calls { args ->
+            picker = args.arg<NumberPickerCallback>(2)
+            Unit
+        }
+        return { picker!! }
+    }
+
+    private fun createNumericalHabit(
+        frequency: Frequency,
+        targetType: NumericalHabitType,
+        targetValue: Double,
+        color: PaletteColor
+    ): Habit {
+        val h = modelFactory.buildHabit().apply {
+            name = "Test Numerical"
+            type = HabitType.NUMERICAL
+            this.frequency = frequency
+            this.targetType = targetType
+            this.targetValue = targetValue
+            this.color = color
+        }
+        habitList.add(h)
+        return h
+    }
+
+    @Test
+    fun testOnEdit_numericalDailyConfetti() {
+        val today = LocalDate(2026, 5, 10)
+        setToday(today)
+        try {
+            val getPicker = stubNumberPopup()
+            val atLeast = createNumericalHabit(
+                Frequency.DAILY,
+                NumericalHabitType.AT_LEAST,
+                10.0,
+                PaletteColor(1)
+            )
+
+            behavior.onEdit(atLeast.id!!, today, 1f, 2f)
+            getPicker().onNumberPicked(5.0, "")
+            verify(notCalled) { screen.showConfetti(atLeast.color, any(), any()) }
+
+            behavior.onEdit(atLeast.id!!, today, 1f, 2f)
+            getPicker().onNumberPicked(Entry.SKIP.toDouble() / 1000, "")
+            verify(notCalled) { screen.showConfetti(atLeast.color, any(), any()) }
+
+            behavior.onEdit(atLeast.id!!, today, 1f, 2f)
+            getPicker().onNumberPicked(10.0, "")
+            verify(exactly(1)) { screen.showConfetti(atLeast.color, 1f, 2f) }
+
+            val atMost = createNumericalHabit(
+                Frequency.DAILY,
+                NumericalHabitType.AT_MOST,
+                5.0,
+                PaletteColor(2)
+            )
+            behavior.onEdit(atMost.id!!, today, 3f, 4f)
+            getPicker().onNumberPicked(7.0, "")
+            verify(notCalled) { screen.showConfetti(atMost.color, any(), any()) }
+
+            behavior.onEdit(atMost.id!!, today, 3f, 4f)
+            getPicker().onNumberPicked(4.0, "")
+            verify(exactly(1)) { screen.showConfetti(atMost.color, 3f, 4f) }
+        } finally {
+            resetToday()
+        }
+    }
+
+    @Test
+    fun testOnEdit_numericalWeeklyConfetti() {
+        val sun = LocalDate(2026, 5, 10)
+        val mon = sun.plus(1)
+        val tue = sun.plus(2)
+        val wed = sun.plus(3)
+        setFirstWeekday(DayOfWeek.SUNDAY)
+        setToday(wed)
+        try {
+            val getPicker = stubNumberPopup()
+            val weeklyAtLeast = createNumericalHabit(
+                Frequency.WEEKLY,
+                NumericalHabitType.AT_LEAST,
+                70.0,
+                PaletteColor(3)
+            )
+
+            behavior.onEdit(weeklyAtLeast.id!!, sun, 1f, 1f)
+            getPicker().onNumberPicked(30.0, "")
+            verify(notCalled) { screen.showConfetti(weeklyAtLeast.color, any(), any()) }
+
+            behavior.onEdit(weeklyAtLeast.id!!, mon, 1f, 1f)
+            getPicker().onNumberPicked(20.0, "")
+            verify(notCalled) { screen.showConfetti(weeklyAtLeast.color, any(), any()) }
+
+            behavior.onEdit(weeklyAtLeast.id!!, tue, 1f, 1f)
+            getPicker().onNumberPicked(20.0, "")
+            verify(exactly(1)) { screen.showConfetti(weeklyAtLeast.color, 1f, 1f) }
+
+            // Saving 0 on another day in an already-completed week should not re-trigger confetti
+            behavior.onEdit(weeklyAtLeast.id!!, wed, 1f, 1f)
+            getPicker().onNumberPicked(0.0, "")
+            verify(notCalled) { screen.showConfetti(weeklyAtLeast.color, any(), any()) }
+
+            val weeklyAtMost = createNumericalHabit(
+                Frequency.WEEKLY,
+                NumericalHabitType.AT_MOST,
+                10.0,
+                PaletteColor(4)
+            )
+            behavior.onEdit(weeklyAtMost.id!!, sun, 2f, 2f)
+            getPicker().onNumberPicked(6.0, "")
+            verify(exactly(1)) { screen.showConfetti(weeklyAtMost.color, 2f, 2f) }
+
+            behavior.onEdit(weeklyAtMost.id!!, mon, 2f, 2f)
+            getPicker().onNumberPicked(5.0, "")
+            verify(notCalled) { screen.showConfetti(weeklyAtMost.color, any(), any()) }
+        } finally {
+            resetToday()
+            resetFirstWeekday()
+        }
+    }
+
+    @Test
+    fun testOnEdit_numericalMonthlyHijriConfetti() {
+        val m1 = LocalDate.fromHijri(1448, 6, 1)
+        val m5 = LocalDate.fromHijri(1448, 6, 5)
+        setToday(m5)
+        try {
+            val getPicker = stubNumberPopup()
+            val monthly = createNumericalHabit(
+                Frequency(1, 30),
+                NumericalHabitType.AT_LEAST,
+                100.0,
+                PaletteColor(5)
+            )
+
+            behavior.onEdit(monthly.id!!, m1, 5f, 6f)
+            getPicker().onNumberPicked(40.0, "")
+            verify(notCalled) { screen.showConfetti(monthly.color, any(), any()) }
+
+            behavior.onEdit(monthly.id!!, m5, 5f, 6f)
+            getPicker().onNumberPicked(60.0, "")
+            verify(exactly(1)) { screen.showConfetti(monthly.color, 5f, 6f) }
+        } finally {
+            resetToday()
+        }
     }
 }

@@ -140,31 +140,16 @@ open class EntryList {
     ) {
         if (isNumerical) {
             val firstWeekday = getFirstWeekday()
-            val denominator = frequency.denominator
-            val periodLength = when {
-                denominator <= 1 -> 1
-                denominator <= 7 -> 7
-                else -> 30
-            }
-            val dailyTarget = targetValue / denominator
-            val baseTarget = if (denominator == periodLength) targetValue else dailyTarget * periodLength
-
             val periods = getKnown().groupBy {
-                periodStart(it.date, firstWeekday, frequency)
+                numericalPeriodBounds(it.date, firstWeekday, frequency).first
             }.toMutableMap()
             val today = getToday()
-            val todayPeriodStart = periodStart(today, firstWeekday, frequency)
+            val todayPeriodStart = numericalPeriodBounds(today, firstWeekday, frequency).first
             if (!periods.containsKey(todayPeriodStart)) {
                 periods[todayPeriodStart] = emptyList()
             }
             for (entries in periods.values) {
-                val periodSum = entries.sumOf { clampedValue(it) }
-                val skippedDays = entries.count { it.value == Entry.SKIP }
-                val target = max(0.0, baseTarget - dailyTarget * skippedDays)
-                val met = when (targetType) {
-                    NumericalHabitType.AT_LEAST -> periodSum / 1000.0 >= target
-                    NumericalHabitType.AT_MOST -> periodSum / 1000.0 <= target
-                }
+                val met = isPeriodTargetMet(entries, frequency, targetType, targetValue)
                 if (entries.isEmpty() && met) {
                     add(Entry(today, Entry.UNKNOWN, completed = true))
                 } else {
@@ -183,16 +168,6 @@ open class EntryList {
                 }
             }
         }
-    }
-
-    private fun periodStart(date: LocalDate, firstWeekday: DayOfWeek, frequency: Frequency): LocalDate = when {
-        frequency.denominator <= 1 -> date
-        frequency.denominator <= 7 -> date.startOfWeek(firstWeekday)
-        else -> date.startOfHijriMonth()
-    }
-
-    private fun clampedValue(entry: Entry): Int {
-        return if (entry.value == Entry.SKIP) 0 else max(0, entry.value)
     }
 
     /**
@@ -359,6 +334,45 @@ open class EntryList {
                 }
             }
             return intervals
+        }
+
+        fun numericalPeriodBounds(
+            date: LocalDate,
+            firstWeekday: DayOfWeek,
+            frequency: Frequency
+        ): Pair<LocalDate, LocalDate> = when {
+            frequency.denominator <= 1 -> date to date
+            frequency.denominator <= 7 -> {
+                val start = date.startOfWeek(firstWeekday)
+                start to start.plus(6)
+            }
+            else -> {
+                val start = date.startOfHijriMonth()
+                start to start.plus(start.hijriMonthLength - 1)
+            }
+        }
+
+        fun isPeriodTargetMet(
+            entries: List<Entry>,
+            frequency: Frequency,
+            targetType: NumericalHabitType,
+            targetValue: Double
+        ): Boolean {
+            val denominator = frequency.denominator
+            val periodLength = when {
+                denominator <= 1 -> 1
+                denominator <= 7 -> 7
+                else -> 30
+            }
+            val dailyTarget = targetValue / denominator
+            val baseTarget = if (denominator == periodLength) targetValue else dailyTarget * periodLength
+            val periodSum = entries.sumOf { if (it.value == SKIP) 0 else max(0, it.value) }
+            val skippedDays = entries.count { it.value == SKIP }
+            val target = max(0.0, baseTarget - dailyTarget * skippedDays)
+            return when (targetType) {
+                NumericalHabitType.AT_LEAST -> periodSum / 1000.0 >= target
+                NumericalHabitType.AT_MOST -> periodSum / 1000.0 <= target
+            }
         }
     }
 }

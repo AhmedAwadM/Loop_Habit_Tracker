@@ -21,13 +21,18 @@ package org.isoron.uhabits.core.ui.screens.habits.list
 import me.tatarka.inject.annotations.Inject
 import org.isoron.platform.io.UserFile
 import org.isoron.platform.time.LocalDate
+import org.isoron.platform.time.getFirstWeekday
 import org.isoron.platform.time.getToday
 import org.isoron.uhabits.core.commands.CommandRunner
 import org.isoron.uhabits.core.commands.CreateRepetitionCommand
 import org.isoron.uhabits.core.commands.RenameCategoryCommand
 import org.isoron.uhabits.core.commands.ReorderHabitCommand
 import org.isoron.uhabits.core.commands.ReorderTarget
+import org.isoron.uhabits.core.models.Entry.Companion.SKIP
+import org.isoron.uhabits.core.models.Entry.Companion.UNKNOWN
 import org.isoron.uhabits.core.models.Entry.Companion.YES_MANUAL
+import org.isoron.uhabits.core.models.EntryList
+import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.HabitList
 import org.isoron.uhabits.core.models.HabitType
 import org.isoron.uhabits.core.models.NumericalHabitType.AT_LEAST
@@ -61,7 +66,7 @@ open class ListHabitsBehavior(
             val oldValue = entry.value.toDouble() / 1000
             screen.showNumberPopup(oldValue, entry.notes) { newValue: Double, newNotes: String ->
                 val value = (newValue * 1000).roundToInt()
-                if (newValue != oldValue && habit.targetType == AT_LEAST) {
+                if (shouldShowNumericalConfetti(habit, date, value, entry.value)) {
                     screen.showConfetti(habit.color, x, y)
                 }
                 commandRunner.run(CreateRepetitionCommand(habitList, habit, date, value, newNotes))
@@ -148,6 +153,28 @@ open class ListHabitsBehavior(
             CreateRepetitionCommand(habitList, habit, date, value, notes)
         )
         if (value == YES_MANUAL) screen.showConfetti(habit.color, x, y)
+    }
+
+    private fun shouldShowNumericalConfetti(
+        habit: Habit,
+        date: LocalDate,
+        newValue: Int,
+        oldValue: Int
+    ): Boolean {
+        if (newValue == SKIP || newValue == UNKNOWN || newValue < 0 || newValue == oldValue) {
+            return false
+        }
+        if (habit.targetType == AT_LEAST && habit.targetValue > 0.0 && newValue == 0) return false
+        val (start, end) = EntryList.numericalPeriodBounds(date, getFirstWeekday(), habit.frequency)
+        val periodEntries = habit.computedEntries.getByInterval(start, end).map { entry ->
+            if (entry.date == date) entry.copy(value = newValue) else entry
+        }
+        return EntryList.isPeriodTargetMet(
+            entries = periodEntries,
+            frequency = habit.frequency,
+            targetType = habit.targetType,
+            targetValue = habit.targetValue
+        )
     }
 
     enum class Message {

@@ -26,8 +26,10 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Typeface
 import android.text.TextPaint
+import android.text.TextUtils
 import android.view.View.MeasureSpec.EXACTLY
 import org.isoron.platform.time.JavaLocalDateFormatter
+import org.isoron.platform.time.LocalDate
 import org.isoron.platform.time.getToday
 import org.isoron.uhabits.R
 import org.isoron.uhabits.activities.common.views.ScrollableChart
@@ -119,23 +121,32 @@ class HeaderView(
             typeface = Typeface.DEFAULT_BOLD
             color = sres.getColor(R.attr.contrast60)
         }
+        private val monthPaint = TextPaint().apply {
+            isAntiAlias = true
+            textSize = dim(R.dimen.smallTextSize)
+            typeface = Typeface.DEFAULT_BOLD
+            color = sres.getColor(R.attr.contrast60)
+        }
 
         fun draw(canvas: Canvas) {
             val today = getToday()
             val width = dim(R.dimen.checkmarkWidth)
             val height = dim(R.dimen.checkmarkHeight)
+            val buttonCount = state?.buttonCount ?: 0
             val isReversed = prefs.isCheckmarkSequenceReversed
 
             val em = paint.measureText("m")
 
-            repeat(state?.buttonCount ?: 0) { index ->
+            drawMonthYearLabel(canvas, today.minus(dataOffset), buttonCount, width, height)
+
+            repeat(buttonCount) { index ->
                 rect.set(0f, 0f, width, height)
                 rect.offset(canvas.width.toFloat() - dp(3.0f), 0f)
 
                 if (isReversed) {
                     rect.offset(-(index + 1) * width, 0f)
                 } else {
-                    rect.offset((index - (state?.buttonCount ?: 0)) * width, 0f)
+                    rect.offset((index - buttonCount) * width, 0f)
                 }
 
                 if (isRTL()) {
@@ -155,6 +166,42 @@ class HeaderView(
                 canvas.drawText(dayOfWeek, rect.centerX(), y1.toFloat(), paint)
                 canvas.drawText(dayOfMonth, rect.centerX(), y2.toFloat(), paint)
             }
+        }
+
+        private fun drawMonthYearLabel(
+            canvas: Canvas,
+            referenceDate: LocalDate,
+            buttonCount: Int,
+            buttonWidth: Float,
+            headerHeight: Float
+        ) {
+            val rtl = isRTL()
+            val startPadding = dp(12.0f)
+            val endGap = dp(8.0f)
+            val reservedButtonsWidth = dp(3.0f) + buttonCount * buttonWidth
+            val maxTextWidth = canvas.width - reservedButtonsWidth - startPadding - endGap
+            if (maxTextWidth <= 0f) return
+
+            val year = referenceDate.hijriYear
+            val longLabel = "${dateFormatter.longMonthName(referenceDate)} $year"
+            val shortLabel = "${dateFormatter.shortMonthName(referenceDate)} $year"
+            val candidate = if (monthPaint.measureText(longLabel) <= maxTextWidth) {
+                longLabel
+            } else {
+                shortLabel
+            }
+            val displayText = TextUtils.ellipsize(
+                candidate,
+                monthPaint,
+                maxTextWidth,
+                TextUtils.TruncateAt.END
+            ).toString()
+
+            monthPaint.textAlign = if (rtl) Paint.Align.RIGHT else Paint.Align.LEFT
+            val drawX = if (rtl) canvas.width - startPadding else startPadding
+            val fm = monthPaint.fontMetrics
+            val baselineY = headerHeight / 2f - (fm.ascent + fm.descent) / 2f
+            canvas.drawText(displayText, drawX, baselineY, monthPaint)
         }
     }
 }
